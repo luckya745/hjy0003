@@ -17,14 +17,12 @@ import random
 import json
 import time
 import os
+import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
 
-# =========================================================
-# 2. 설정 (API 키 입력)
-# =========================================================
-# 발급받은 API 키를 따옴표 안에 넣어주세요
-API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
-genai.configure(api_key=API_KEY)
 
 # 모델 설정 (혹시 flash 모델이 안 되면 pro 모델로 자동 전환하도록 예외처리 추가함)
 def get_model():
