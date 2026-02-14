@@ -31,11 +31,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import asyncio
+import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
+
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
 # 1. Google AI Studio 설정
-# 본인의 API 키를 여기에 입력하세요.
-API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
-genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel('gemini-2.5-flash')
 
 def analyze_sentiment_with_gemini(text_list):
