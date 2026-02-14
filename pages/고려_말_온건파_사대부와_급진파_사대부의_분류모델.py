@@ -13,15 +13,12 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import google.generativeai as genai
+import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
 
-# ==========================================
-# 1. 설정 (API 키 입력)
-# ==========================================
-# 구글 AI 스튜디오에서 발급받은 API 키를 입력하세요.
-GOOGLE_API_KEY = "AIzaSyB3aVFy7-jm0p_j1QnNGH0XSoNvBaElUKU"
-
-# 모델 설정 (이전 오류 해결을 위해 gemini-1.5-flash 사용)
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=GOOGLE_API_KEY)
+
 model = genai.GenerativeModel('gemini-2.5-flash')
 
 class HistoryClassifier:
