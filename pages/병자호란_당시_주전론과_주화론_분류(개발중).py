@@ -12,11 +12,12 @@ pip install google-generativeai requests beautifulsoup4
 import google.generativeai as genai
 import requests
 from bs4 import BeautifulSoup
+import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
 
-# ==========================================
-# 1. 사용자 설정 (API 키 입력)
-# ==========================================
-API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"  # 여기에 발급받은 키를 다시 입력해주세요.
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
+
 
 # 경고 메시지가 불편하다면 최신 패키지(google.genai)로 마이그레이션이 필요하지만,
 # 현재 코드 작동을 위해 기존 방식을 유지하되 오류를 방지합니다.
