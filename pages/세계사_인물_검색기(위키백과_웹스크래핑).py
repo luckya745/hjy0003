@@ -121,10 +121,12 @@ if __name__ == "__main__":
             print("-" * 50)
 
 import google.generativeai as genai
+import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
 
-# 선생님의 API 키를 여기에 넣으세요
-api_key = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
-genai.configure(api_key=api_key)
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
+
 
 print("=== 사용 가능한 모델 목록 ===")
 for m in genai.list_models():
