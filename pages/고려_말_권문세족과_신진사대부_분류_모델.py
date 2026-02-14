@@ -7,8 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1FU6k7uTDS2t0mwe-ENWFkomn61_9d3u1
 """
 
-pip install google-generativeai
-
 import google.generativeai as genai
 import os
 import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
