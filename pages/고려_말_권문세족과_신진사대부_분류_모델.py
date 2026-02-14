@@ -116,4 +116,58 @@ def analyze_goryeo_figure(name, context_text):
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.markdown
+    st.markdown("### 🔍 인물 검색")
+    target_name = st.text_input("인물 이름 (예: 이인임, 정몽주, 이성계)", placeholder="이름을 입력하세요")
+    
+    st.markdown("### ℹ️ 분류 기준")
+    with st.expander("권문세족이란?"):
+        st.write("""
+        - **시기**: 고려 후기 (원 간섭기)
+        - **출신**: 친원파, 문벌 귀족
+        - **특징**: 음서로 관직 진출, 대농장 소유, 불교 옹호
+        """)
+    with st.expander("신진사대부란?"):
+        st.write("""
+        - **시기**: 고려 말 ~ 조선 건국
+        - **출신**: 지방 향리 출신
+        - **특징**: 과거로 관직 진출, 성리학 수용, 친명 정책, 개혁 추구
+        """)
+        
+    analyze_btn = st.button("분석 시작", type="primary", use_container_width=True)
+
+with col2:
+    if analyze_btn and target_name:
+        st.divider()
+        
+        # 1. 데이터 수집 및 상태 표시
+        with st.status("역사 데이터베이스 접근 중...", expanded=True) as status:
+            st.write(f"국사편찬위원회에서 '{target_name}' 관련 기록을 찾고 있습니다.")
+            history_data = scrape_goryeo_data(target_name)
+            
+            if history_data:
+                status.update(label="✅ 사료 데이터 확보 완료!", state="complete", expanded=False)
+            else:
+                status.update(label="⚠️ 사료 검색 실패 (AI 지식으로 대체)", state="complete", expanded=False)
+        
+        # 2. AI 분석
+        with st.spinner("📜 역사를 분석하는 중입니다..."):
+            result_text, mode = analyze_goryeo_figure(target_name, history_data)
+        
+        # 3. 결과 출력
+        st.subheader(f"📊 분석 결과: {target_name}")
+        if "사료" in mode:
+            st.success(mode)
+        else:
+            st.warning(mode)
+            
+        st.markdown(result_text)
+        
+        # 4. 원본 사료 확인
+        if history_data:
+            with st.expander("🔎 분석에 사용된 원본 텍스트 보기"):
+                st.text(history_data)
+
+    elif analyze_btn and not target_name:
+        st.error("인물 이름을 입력해주세요.")
+    else:
+        st.info("👈 왼쪽에서 인물 이름을 입력하고 '분석 시작'을 눌러주세요.")
