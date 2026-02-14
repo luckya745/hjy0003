@@ -7,8 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1d77zl8FQXiCzrV8d_POfAit0-9N8CHfu
 """
 
-pip install requests beautifulsoup4 google-generativeai
-
 import requests
 from bs4 import BeautifulSoup
 import google.generativeai as genai
@@ -304,8 +302,9 @@ import warnings
 # 경고 메시지(FutureWarning) 숨기기 (깔끔한 출력을 위해)
 warnings.filterwarnings("ignore")
 
-# Google AI Studio API KEY 입력
-GOOGLE_API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
 try:
     genai.configure(api_key=GOOGLE_API_KEY)
