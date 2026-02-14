@@ -7,8 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/10WDYnOVi9LTDGQ0jJf-1WptSLXOGZ9rl
 """
 
-pip install requests beautifulsoup4 pandas scikit-learn konlpy
-
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
