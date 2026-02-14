@@ -13,14 +13,10 @@ import requests
 from bs4 import BeautifulSoup
 import google.generativeai as genai
 import sys
+import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
 
-# ---------------------------------------------------------
-# 1. 설정 및 초기화 (Google AI Studio)
-# ---------------------------------------------------------
-# Google AI Studio에서 발급받은 API Key를 입력하세요
-GOOGLE_API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
-
-# API 키 설정
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=GOOGLE_API_KEY)
 
 # 모델 설정 (가볍고 빠른 gemini-1.5-flash 사용 권장)
