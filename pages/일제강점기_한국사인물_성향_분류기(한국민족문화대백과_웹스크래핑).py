@@ -8,7 +8,6 @@ Original file is located at
 """
 
 # [1] 라이브러리 강제 업데이트 (이 코드를 가장 먼저 실행해야 404 오류가 사라집니다)
-!pip install -U google-generativeai requests beautifulsoup4
 
 import google.generativeai as genai
 import requests
