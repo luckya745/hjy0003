@@ -103,8 +103,9 @@ import urllib.parse
 # =========================================================
 # 1. API 설정 (여기에 발급받은 키를 입력하세요)
 # =========================================================
-API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
-genai.configure(api_key=API_KEY)
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
 # 모델 설정
 model = genai.GenerativeModel("gemini-2.5-flash") # 속도와 효율성을 위해 Flash 모델 권장
