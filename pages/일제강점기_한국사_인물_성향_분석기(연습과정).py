@@ -331,14 +331,12 @@ from bs4 import BeautifulSoup
 import random
 import json
 import time
+import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
 
-# =========================================================
-# 1. 설정 (API 키 입력)
-# =========================================================
-# 구글 AI Studio에서 발급받은 API 키를 여기에 입력하세요.
-API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
-genai.configure(api_key=API_KEY)
 
 # 사용할 모델 설정 (gemini-1.5-flash가 속도가 빠르고 저렴하여 분류 작업에 적합합니다)
 model = genai.GenerativeModel('gemini-1.5-flash')
