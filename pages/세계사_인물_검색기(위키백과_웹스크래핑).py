@@ -7,8 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1IbzB_GgzIfsPUZH0R-mlNxMoY9lfGsX_
 """
 
-pip install google-generativeai requests beautifulsoup4
-
 import requests
 from bs4 import BeautifulSoup
 import google.generativeai as genai
