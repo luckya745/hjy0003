@@ -22,9 +22,13 @@ from collections import Counter
 # 1. 환경 설정
 NOTION_TOKEN = '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'
 DATABASE_ID = '2d19e99c537880898d81f3b5f9c7b673'
-GOOGLE_API_KEY = 'AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw'
+import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
 
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=GOOGLE_API_KEY)
+
+# 1. Google AI Studio 설정
 model = genai.GenerativeModel('gemini-2.5-flash')
 
 def get_notion_data(token, db_id):
