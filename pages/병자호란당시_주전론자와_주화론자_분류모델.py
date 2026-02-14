@@ -151,8 +151,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # 1. 설정 (Configuration)
 # ==========================================
 
-# [중요] API 키를 입력하세요
-GOOGLE_API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
 # Gemini 모델 설정
 try:
