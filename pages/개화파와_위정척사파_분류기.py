@@ -458,8 +458,9 @@ import warnings
 # ---------------------------------------------------------
 warnings.filterwarnings("ignore") # 불필요한 경고 숨기기
 
-# 구글 AI 스튜디오 API 키 입력
-GOOGLE_API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
 try:
     genai.configure(api_key=GOOGLE_API_KEY)
