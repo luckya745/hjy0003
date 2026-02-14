@@ -11,13 +11,12 @@ pip install google-generativeai
 
 import google.generativeai as genai
 import os
+import streamlit as st  # 이 줄이 없으면 맨 위에 추가해주세요!
 
-# ---------------------------------------------------------
-# 1. API 설정 (발급받은 API 키를 입력하세요)
-# ---------------------------------------------------------
-# 보안을 위해 환경변수에서 가져오거나, 테스트 시 아래 문자열에 직접 입력하세요.
-API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
-genai.configure(api_key=API_KEY)
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
+
 
 # ---------------------------------------------------------
 # 2. 모델 설정 (Gemini Pro 사용)
