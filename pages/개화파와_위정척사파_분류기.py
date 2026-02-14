@@ -156,8 +156,9 @@ import time
 # ---------------------------------------------------------
 # 1. 설정 및 초기화
 # ---------------------------------------------------------
-# Google AI Studio에서 발급받은 API Key를 입력하세요
-GOOGLE_API_KEY = "AIzaSyBEmAHr7r1i2mt8yu6qjp3P79ErIfQrIfw"
+# 이제 실제 키 대신 '비밀 금고'를 참조합니다
+GOOGLE_API_KEY = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
 try:
     genai.configure(api_key=GOOGLE_API_KEY)
