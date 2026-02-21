@@ -29,7 +29,7 @@ try:
     if api_key:
         genai.configure(api_key=api_key)
         # 속도가 빠른 Flash 모델 사용 권장
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash-lite')
     else:
         st.warning("⚠️ API 키가 설정되지 않았습니다.")
         st.stop()
