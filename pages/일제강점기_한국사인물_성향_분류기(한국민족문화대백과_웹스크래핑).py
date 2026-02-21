@@ -28,7 +28,7 @@ try:
     
     if api_key:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash-lite')
     else:
         st.warning("⚠️ API 키가 설정되지 않았습니다.")
         st.stop()
