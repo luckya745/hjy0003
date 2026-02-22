@@ -14,7 +14,7 @@ st.set_page_config(
 
 st.title("📜 고려 말: 온건파 vs 급진파 사대부")
 st.markdown("---")
-st.info("💡 인물 이름을 입력하고, 어느 세력에 속할지 먼저 예측해 보세요!")
+st.info("💡 동일한 인물을 다시 분석할 때는 API를 호출하지 않고 저장된 결과를 불러옵니다.")
 
 # ---------------------------------------------------------
 # 2. API 키 설정
@@ -27,7 +27,7 @@ try:
     
     if api_key:
         genai.configure(api_key=api_key)
-        # 안정적인 gemini-2.5-flash-lite 모델 사용 권장
+        # 안정적인 gemini-1.5-flash 모델 사용 권장 (최신 버전 반영)
         model = genai.GenerativeModel('gemini-2.5-flash-lite')
     else:
         st.warning("⚠️ API 키가 설정되지 않았습니다.")
@@ -37,7 +37,7 @@ except Exception as e:
     st.stop()
 
 # ---------------------------------------------------------
-# 3. 데이터 수집 함수
+# 3. 데이터 수집 함수 (기존 캐싱 유지)
 # ---------------------------------------------------------
 @st.cache_data(ttl=3600)
 def scrape_history_db(name):
@@ -55,8 +55,10 @@ def scrape_history_db(name):
         return None
 
 # ---------------------------------------------------------
-# 4. AI 분석 함수 (비교 로직을 위한 프롬프트 강화)
+# 4. AI 분석 함수 (Gemini API 캐싱 추가)
 # ---------------------------------------------------------
+# 인물 이름과 사료 내용이 동일하면 함수를 다시 실행하지 않고 캐시된 결과를 반환합니다.
+@st.cache_data(show_spinner=False, ttl=3600)
 def analyze_sadaebu(name, context_text):
     if context_text:
         base_prompt = f"다음 [사료]를 바탕으로 인물 '{name}'을 분석하세요.\n[사료]: {context_text[:2500]}"
@@ -82,7 +84,6 @@ def analyze_sadaebu(name, context_text):
 # ---------------------------------------------------------
 # 5. UI 구성
 # ---------------------------------------------------------
-# 초기 화면에 파벌 비교 표 추가
 st.subheader("📌 사대부 세력 비교")
 st.markdown("""
 | 구분 | 온건파 사대부 | 급진파 사대부 |
@@ -100,7 +101,6 @@ with col1:
     st.markdown("### 🔍 인물 입력 및 예측")
     target_name = st.text_input("인물 이름", placeholder="예: 정몽주, 정도전")
     
-    # 사용자의 예측 선택 추가
     user_prediction = st.radio(
         "본인이 생각하는 이 인물의 소속은?",
         ["온건파 사대부", "급진파 사대부"],
@@ -111,28 +111,28 @@ with col1:
 
 with col2:
     if analyze_btn and target_name:
-        # 1. 데이터 수집
+        # 1. 데이터 수집 (캐시 적용됨)
         with st.status("역사 데이터베이스 검색 중...", expanded=False) as status:
             history_data = scrape_history_db(target_name)
             status.update(label="✅ 데이터 검색 완료", state="complete")
         
-        # 2. AI 분석
+        # 2. AI 분석 (캐시 적용됨)
+        # 이미 검색했던 인물이라면 API 호출 없이 즉시 결과가 나타납니다.
         with st.spinner(f"🤖 '{target_name}'의 성향을 분석 중입니다..."):
             full_result = analyze_sadaebu(target_name, history_data)
         
-        # 3. 결과 대조 로직 (첫 줄에서 결론 추출)
+        # 3. 결과 대조 로직
         lines = full_result.strip().split('\n')
-        conclusion_line = lines[0] # 예: "최종 분류: 온건파 사대부"
+        conclusion_line = lines[0]
         detailed_analysis = "\n".join(lines[1:])
         
-        # 실제 AI가 판단한 파벌 명칭 추출
         actual_faction = "기타"
         if "온건파" in conclusion_line:
             actual_faction = "온건파 사대부"
         elif "급진파" in conclusion_line:
             actual_faction = "급진파 사대부"
             
-        # 4. 피드백 출력
+        # 4. 결과 출력
         st.subheader(f"📊 분석 결과: {target_name}")
         
         if actual_faction == user_prediction:
@@ -140,7 +140,6 @@ with col2:
         else:
             st.error(f"🧐 **틀렸습니다.** 예측은 '{user_prediction}'이었으나, 분석 결과는 **{actual_faction}**입니다.")
 
-        # 상세 내용 표시
         with st.container(border=True):
             st.caption("AI 분석 상세 근거")
             st.markdown(detailed_analysis)
