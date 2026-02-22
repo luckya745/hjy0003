@@ -14,7 +14,7 @@ st.set_page_config(
 
 st.title("⚔️ 병자호란: 주전론 vs 주화론 분류기")
 st.markdown("---")
-st.info("💡 1636년 병자호란 당시, 청나라와의 관계를 두고 대립했던 인물들의 정치적 입장을 분석합니다.")
+st.info("💡 인물 이름을 입력하고, 어느 세력에 속할지 먼저 예측해 보세요!")
 
 # ---------------------------------------------------------
 # 2. API 키 설정 (메인 app.py와 연동)
@@ -27,6 +27,7 @@ try:
     
     if api_key:
         genai.configure(api_key=api_key)
+        # 안정적인 gemini-2.5-flash 모델 사용 권장
         model = genai.GenerativeModel('gemini-2.5-flash-lite')
     else:
         st.warning("⚠️ API 키가 설정되지 않았습니다.")
@@ -44,70 +45,41 @@ def scrape_byeongja_data(name):
     base_url = "https://db.history.go.kr/search/searchResult.do"
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': 'https://db.history.go.kr/'
     }
-    params = {'searchKeyword': name, 'limit': '20'}
-
+    params = {'searchKeyword': name, 'limit': '15'}
     try:
         response = requests.get(base_url, params=params, headers=headers, timeout=5)
-        if response.status_code != 200: return None
-        
         soup = BeautifulSoup(response.text, 'html.parser')
-        results = []
-        
-        # 검색 결과 추출
-        list_items = soup.select('.search_list li .cont')
-        if not list_items:
-            list_items = soup.select('.result_list li')
-
-        for item in list_items[:4]: 
-            text = item.get_text(strip=True)
-            if len(text) > 30: results.append(text)
-
+        results = [item.get_text(strip=True) for item in soup.select('.search_list li .cont')[:3]]
         return " ".join(results) if results else None
     except:
         return None
 
 # ---------------------------------------------------------
-# 4. AI 분석 함수
+# 4. AI 분석 함수 (정확한 비교를 위해 출력 형식 강화)
 # ---------------------------------------------------------
 def analyze_stance(name, context_text):
     """Gemini를 이용한 정치적 입장 분석"""
-    
     if context_text:
-        source_mode = "📚 사료 기반 정밀 분석"
         base_prompt = f"다음 [사료]를 바탕으로 인물 '{name}'을 분석하세요.\n[사료]: {context_text[:2500]}"
     else:
-        source_mode = "🧠 AI 지식 기반 분석 (사료 없음)"
         base_prompt = f"역사적 지식을 바탕으로 병자호란 시기 인물 '{name}'을 분석하세요."
 
     prompt = f"""
     {base_prompt}
 
-    [역사적 배경: 병자호란(1636)]
-    당시 조선 조정은 청나라(후금)의 요구에 대한 대응을 두고 두 파로 갈라졌습니다.
-    1. **주전론 (척화파)**: "오랑캐에게 무릎 꿇을 수 없다." 대의명분과 절의 중시, 결사항전 주장. (예: 김상헌, 삼학사)
-    2. **주화론 (주화파)**: "나라를 보존하는 것이 우선이다." 실리와 생존 중시, 화친 주장. (예: 최명길)
-
     [지시사항]
     1. 이 인물이 **'주전론(척화파)'**인지 **'주화론'**인지 명확히 분류하세요.
-    2. 아래 기준에 맞춰 상세히 설명하세요:
-       - **핵심 주장**: 전쟁(항전) vs 화친(강화)
-       - **명분과 실리**: 명나라와의 의리 중시 vs 국가의 보존 중시
-       - **주요 행적**: 남한산성에서의 언행이나 전후의 결과
-
-    [출력 형식]
-    마크다운(Markdown)을 사용하여 작성하세요.
-    - **최종 분류**: [주전론(척화파) / 주화론 / 기타]
-    - **한 줄 요약**: [핵심 주장 요약]
-    - **상세 분석**: (주장, 논리, 결말 항목별 정리)
+    2. **[반드시 지킬 출력 형식]**:
+       - 첫 번째 줄: 반드시 "결론: [주전론(척화파) 또는 주화론]" 형식으로만 작성하세요. (예: 결론: 주전론(척화파))
+       - 두 번째 줄 이하: 핵심 주장, 명분과 실리, 주요 행적을 마크다운 형식으로 상세히 설명하세요.
     """
 
     try:
         response = model.generate_content(prompt)
-        return response.text, source_mode
+        return response.text
     except Exception as e:
-        return f"분석 중 오류 발생: {e}", "Error"
+        return f"결론: 오류\n분석 중 오류 발생: {e}"
 
 # ---------------------------------------------------------
 # 5. UI 구성
@@ -115,54 +87,63 @@ def analyze_stance(name, context_text):
 col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.markdown("### 🔍 인물 입력")
-    target_name = st.text_input("인물 이름 (예: 김상헌, 최명길, 홍익한)", placeholder="이름을 입력하세요")
+    st.markdown("### 🔍 인물 입력 및 예측")
+    target_name = st.text_input("인물 이름", placeholder="예: 김상헌, 최명길, 홍익한")
+    
+    # [수정] 사용자의 사전 예측 입력 추가
+    user_prediction = st.radio(
+        "본인이 생각하는 이 인물의 소속은?",
+        ["주전론(척화파)", "주화론"],
+        help="분석 실행 전 본인의 예측을 선택해 주세요."
+    )
+    
+    st.markdown("---")
+    analyze_btn = st.button("분석 시작", type="primary", use_container_width=True)
     
     st.markdown("### ℹ️ 용어 설명")
     with st.expander("🔥 주전론 (척화파)"):
-        st.write("""
-        - **입장**: 청나라와의 화친을 거부하고 끝까지 싸우자.
-        - **가치**: 대의명분, 존명배금(명나라를 높이고 금나라를 배척)
-        - **대표 인물**: 김상헌, 홍익한, 윤집, 오달제(삼학사)
-        """)
+        st.write("청나라와의 화친을 거부하고 끝까지 싸우자고 주장한 세력입니다. 대의명분과 절의를 중시했습니다.")
     with st.expander("🕊️ 주화론 (주화파)"):
-        st.write("""
-        - **입장**: 전쟁을 멈추고 청나라와 화친하여 나라를 보존하자.
-        - **가치**: 현실적 실리, 종묘사직의 보전
-        - **대표 인물**: 최명길
-        """)
-        
-    analyze_btn = st.button("분석 시작", type="primary", use_container_width=True)
+        st.write("전쟁을 멈추고 청나라와 화친하여 나라를 보존하자고 주장한 세력입니다. 현실적 실리를 중시했습니다.")
 
 with col2:
     if analyze_btn and target_name:
         st.divider()
         
-        # 1. 데이터 수집
-        with st.status("역사 데이터베이스 검색 중...", expanded=True) as status:
-            st.write(f"'{target_name}'의 병자호란 당시 기록을 찾고 있습니다.")
+        # 1. 사료 데이터 수집
+        with st.status("역사 데이터베이스 검색 중...", expanded=False) as status:
             history_data = scrape_byeongja_data(target_name)
+            status.update(label="✅ 데이터 확보 완료", state="complete")
+        
+        # 2. AI 분석 실행
+        with st.spinner(f"🤖 '{target_name}'의 정치적 입장을 분석하고 있습니다..."):
+            full_result = analyze_stance(target_name, history_data)
+        
+        # 3. 정답 대조 로직 (첫 줄에서 결론 추출)
+        lines = full_result.strip().split('\n')
+        conclusion_line = lines[0] # 예: "결론: 주전론(척화파)"
+        detailed_analysis = "\n".join(lines[1:])
+        
+        # AI가 내린 실제 정답 추출
+        actual_faction = ""
+        if "주전론" in conclusion_line or "척화파" in conclusion_line:
+            actual_faction = "주전론(척화파)"
+        elif "주화론" in conclusion_line:
+            actual_faction = "주화론"
             
-            if history_data:
-                status.update(label="✅ 사료 데이터 확보 완료!", state="complete", expanded=False)
-            else:
-                status.update(label="⚠️ 사료 검색 실패 (AI 지식으로 대체)", state="complete", expanded=False)
-        
-        # 2. AI 분석
-        with st.spinner("⚔️ 정치적 입장을 분석하고 있습니다..."):
-            result_text, mode = analyze_stance(target_name, history_data)
-        
-        # 3. 결과 출력
+        # 4. 결과 출력 및 피드백
         st.subheader(f"📊 분석 결과: {target_name}")
         
-        if "사료" in mode:
-            st.success(mode)
+        if actual_faction == user_prediction:
+            st.success(f"🎯 **맞았습니다!** '{target_name}'님은 사용자의 예측대로 **{actual_faction}** 성향의 인물입니다.")
         else:
-            st.warning(mode)
-            
-        st.markdown(result_text)
+            st.error(f"🧐 **틀렸습니다.** 사용자는 '{user_prediction}'로 예측했으나, 실제로는 **{actual_faction}** 성향의 인물입니다.")
+
+        # 상세 내용 표시
+        with st.container(border=True):
+            st.info("📚 분석 근거" if history_data else "⚠️ AI 지식 기반 분석 (사료 검색 실패)")
+            st.markdown(detailed_analysis)
         
-        # 4. 원본 사료 확인
         if history_data:
             with st.expander("🔎 분석에 사용된 원본 사료 보기"):
                 st.text(history_data)
@@ -170,4 +151,4 @@ with col2:
     elif analyze_btn and not target_name:
         st.error("인물 이름을 입력해주세요.")
     else:
-        st.info("👈 왼쪽에서 인물 이름을 입력하고 '분석 시작'을 눌러주세요.")
+        st.info("👈 왼쪽에서 인물 이름을 입력하고 소속을 예측한 뒤 '분석 시작'을 눌러주세요.")
