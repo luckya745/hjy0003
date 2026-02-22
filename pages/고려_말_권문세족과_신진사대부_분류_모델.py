@@ -18,6 +18,7 @@ st.set_page_config(
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=api_key)
+    # 속도가 빠르고 효율적인 flash 모델 사용
     model = genai.GenerativeModel('gemini-2.5-flash')
 except Exception:
     st.error("⚠️ API 키가 설정되지 않았습니다. .streamlit/secrets.toml 파일을 확인해주세요.")
@@ -26,8 +27,10 @@ except Exception:
 # ---------------------------------------------------------
 # 3. 데이터 및 기능 함수
 # ---------------------------------------------------------
+
 @st.cache_data(ttl=3600)
 def scrape_goryeo_data(name):
+    """국사편찬위원회 사료 스크래핑 (기존 캐싱 유지)"""
     base_url = "https://db.history.go.kr/search/searchResult.do"
     headers = {'User-Agent': 'Mozilla/5.0'}
     params = {'searchKeyword': name, 'limit': '15'}
@@ -38,7 +41,13 @@ def scrape_goryeo_data(name):
         return " ".join(results) if results else None
     except: return None
 
+# ⭐ API 호출 최적화: 캐싱 데코레이터 추가
+@st.cache_data(ttl=3600, show_spinner=False)
 def analyze_goryeo_figure(name, context_text):
+    """
+    Gemini API 분석 결과 캐싱.
+    동일한 이름과 사료 데이터가 들어오면 API를 호출하지 않고 저장된 값을 반환합니다.
+    """
     prompt = f"""
     인물 '{name}'을 분석하여 '권문세족', '신진사대부', '신흥무인세력' 중 하나로 분류하세요.
     [사료]: {context_text if context_text else "지식 기반 분석"}
@@ -68,7 +77,9 @@ st.markdown("""
 """)
 st.markdown("---")
 
-# --- 메인 기능부 ---
+# ---------------------------------------------------------
+# 5. 메인 기능부 (UI 로직)
+# ---------------------------------------------------------
 col1, col2 = st.columns([1, 2])
 
 with col1:
@@ -83,7 +94,6 @@ with col1:
     
     analyze_btn = st.button("분석 시작", type="primary", use_container_width=True)
     
-    # 파별 상세 설명 (익스팬더)
     with st.expander("📝 세력별 상세 특징"):
         st.info("**권문세족**: 음서로 관직을 독점하고 대농장을 소유한 보수적 기득권층입니다.")
         st.success("**신진사대부**: 성리학을 바탕으로 과거를 통해 등장한 지방 향리 출신 지식인층입니다.")
@@ -91,8 +101,15 @@ with col1:
 
 with col2:
     if analyze_btn and target_name:
-        with st.status("역사 데이터베이스 및 AI 분석 중...", expanded=False):
+        st.divider()
+        
+        # 1. 사료 검색 (캐싱됨)
+        with st.status("역사 데이터베이스 검색 중...", expanded=False) as status:
             history_data = scrape_goryeo_data(target_name)
+            status.update(label="✅ 데이터 확보 완료", state="complete")
+        
+        # 2. AI 분석 실행 (캐싱됨)
+        with st.spinner(f"🤖 '{target_name}' 분석 중... (새로운 인물은 API를 호출합니다)"):
             full_result = analyze_goryeo_figure(target_name, history_data)
         
         # 결과 판정 로직
@@ -111,18 +128,10 @@ with col2:
         if actual_faction == user_prediction:
             st.success(f"🎯 **정답입니다!** '{target_name}'님은 **{actual_faction}** 세력입니다.")
         else:
-            st.error(f"🧐 **틀렸습니다.** 예측은 '{user_prediction}'이었으나, 분석 결과는 **{actual_faction}**입니다.")
+            st.error(f"🧐 **틀렸습니다.** 예측은 '{user_prediction}'이었어나, 분석 결과는 **{actual_faction}**입니다.")
         
         with st.container(border=True):
             st.markdown(detailed_analysis)
             
     else:
-        # 분석 시작 전 초기 안내 메시지
-        st.empty()
-        st.info("👈 왼쪽에서 인물 이름을 입력하고 예측 버튼을 눌러보세요! AI가 사료를 바탕으로 판별해 드립니다.")
-        
-        # 시각적 보조 자료 (이미지/아이콘 대체)
-        st.markdown("""
-        > **학습 팁:** > - **공민왕의 개혁 정치** 시기에 각 세력이 어떻게 변화했는지 주목해 보세요.
-        > - 신진사대부 중에서도 조선 건국에 찬성한 **혁명파**와 반대한 **온건파**로 나뉜다는 점도 기억하세요!
-        """)
+        st.info("👈 왼쪽에서 인물 이름을 입력하고 예측 버튼을 눌러보세요!")
