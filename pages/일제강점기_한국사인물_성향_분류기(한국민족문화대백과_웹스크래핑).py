@@ -29,7 +29,7 @@ try:
     if api_key:
         genai.configure(api_key=api_key)
         # 안정적인 분석을 위해 1.5 Flash 모델 권장 (2.5-flash-lite는 최신 실험 모델일 수 있음)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash-lite')
     else:
         st.warning("⚠️ API 키가 설정되지 않았습니다.")
         st.stop()
